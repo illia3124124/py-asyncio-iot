@@ -4,6 +4,7 @@ import asyncio
 from iot.devices import HueLightDevice, SmartSpeakerDevice, SmartToiletDevice
 from iot.message import Message, MessageType
 from iot.service import IOTService
+from iot.helpers import run_sequence, run_parallel
 
 
 async def main() -> None:
@@ -20,27 +21,24 @@ async def main() -> None:
     hue_light_id = gathered_devices[0]
     speaker_id = gathered_devices[1] 
     toilet_id = gathered_devices[2]
-    await asyncio.gather(
-        service.run_program(
-            [
-                Message(hue_light_id, MessageType.SWITCH_ON),
-                Message(hue_light_id, MessageType.SWITCH_OFF)
-            ]
+    
+    print("=====RUNNING PROGRAM======")
+    await run_parallel(
+        run_sequence(
+            service.send_msg(Message(hue_light_id, MessageType.SWITCH_ON)),
+            service.send_msg(Message(hue_light_id, MessageType.SWITCH_OFF))
         ),
-        service.run_program(
-            [
-                Message(speaker_id, MessageType.SWITCH_ON),
-                Message(speaker_id, MessageType.PLAY_SONG, "Rick Astley - Never Gonna Give You Up"),
-                Message(speaker_id, MessageType.SWITCH_OFF)
-            ]
+        run_sequence(
+            service.send_msg(Message(speaker_id, MessageType.SWITCH_ON)),
+            service.send_msg(Message(speaker_id, MessageType.PLAY_SONG, "Rick Astley - Never Gonna Give You Up")),
+            service.send_msg(Message(speaker_id, MessageType.SWITCH_OFF)),
         ),
-        service.run_program(
-            [
-                Message(toilet_id, MessageType.FLUSH),
-                Message(toilet_id, MessageType.CLEAN)
-            ]
+        run_sequence(
+            service.send_msg(Message(toilet_id, MessageType.FLUSH)),
+            service.send_msg(Message(toilet_id, MessageType.CLEAN))
         )
     )
+    print("=====END OF PROGRAM======")
 
 
 if __name__ == "__main__":
