@@ -13,11 +13,13 @@ async def main() -> None:
     hue_light = HueLightDevice()
     speaker = SmartSpeakerDevice()
     toilet = SmartToiletDevice()
+
     gathered_devices = await asyncio.gather(
         service.register_device(hue_light),
         service.register_device(speaker),
         service.register_device(toilet)
     )
+
     hue_light_id = gathered_devices[0]
     speaker_id = gathered_devices[1] 
     toilet_id = gathered_devices[2]
